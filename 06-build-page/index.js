@@ -21,60 +21,75 @@ fsPromises.rm(path_to, { recursive: true }).then(() => {
 
 
 
-function generateHtml() {
-  // i'm sorry, i don't understand await/async and i use callbacks, a lot of callbacks...
-  const readableStream = fs.createReadStream(path.join(__dirname, 'template.html'), 'utf-8');
-  let data = '';
+async function generateHtml() {
 
-  readableStream.on('data', chunk => {
-    data += chunk;
-  });
-  readableStream.on('end', () => {
-    let new_arr = data.split('{{header}}');
+  const files = await fsPromises.readdir(path.join(__dirname, 'components'), { withFileTypes: true });
 
-    let header = '';
-    let new_data = '';
+  let template_html = await fsPromises.readFile(path.join(__dirname, 'template.html'), 'utf-8');
 
-    const hrs = fs.createReadStream(path.join(__dirname, 'components', 'header.html'), 'utf-8');
-    hrs.on('data', chunk => {
-      header += chunk;
-    });
-    hrs.on('end', () => {
-      new_data = new_arr.join(header);
-      let new_arr2 = new_data.split('{{articles}}');
+  for (let file of files) {
+    let name = file.name.split('.')[0];
+    let new_arr = template_html.split(`{{${name}}}`);
+    let part = await fsPromises.readFile(path.join(__dirname, 'components', file.name), 'utf-8');
+    //console.log(part);
+    template_html = new_arr.join(part);
+  }
+  const writeStream = fs.createWriteStream(path.join(__dirname, '/project-dist/index.html'));
+  writeStream.write(template_html);
 
-      let main = '';
-      let new_data2 = '';
+  //old version
+  // const readableStream = fs.createReadStream(path.join(__dirname, 'template.html'), 'utf-8');
+  // let data = '';
 
-      const ars = fs.createReadStream(path.join(__dirname, 'components', 'articles.html'), 'utf-8');
-      ars.on('data', chunk => {
-        main += chunk;
-      });
+  // readableStream.on('data', chunk => {
+  //   data += chunk;
+  // });
+  // readableStream.on('end', () => {
+  //   let new_arr = data.split('{{header}}');
 
-      ars.on('end', () => {
-        new_data2 = new_arr2.join(main);
-        let new_arr3 = new_data2.split('{{footer}}');
+  //   let header = '';
+  //   let new_data = '';
 
-        let footer = '';
-        let new_data3 = '';
+  //   const hrs = fs.createReadStream(path.join(__dirname, 'components', 'header.html'), 'utf-8');
+  //   hrs.on('data', chunk => {
+  //     header += chunk;
+  //   });
+  //   hrs.on('end', () => {
+  //     new_data = new_arr.join(header);
+  //     let new_arr2 = new_data.split('{{articles}}');
 
-        const ars = fs.createReadStream(path.join(__dirname, 'components', 'footer.html'), 'utf-8');
-        ars.on('data', chunk => {
-          footer += chunk;
-        });
+  //     let main = '';
+  //     let new_data2 = '';
 
-        ars.on('end', () => {
-          new_data3 = new_arr3.join(footer);
-          const writeStream = fs.createWriteStream(path.join(__dirname, '/project-dist/index.html'));
-          writeStream.write(new_data3);
-        })
-      })
+  //     const ars = fs.createReadStream(path.join(__dirname, 'components', 'articles.html'), 'utf-8');
+  //     ars.on('data', chunk => {
+  //       main += chunk;
+  //     });
+
+  //     ars.on('end', () => {
+  //       new_data2 = new_arr2.join(main);
+  //       let new_arr3 = new_data2.split('{{footer}}');
+
+  //       let footer = '';
+  //       let new_data3 = '';
+
+  //       const ars = fs.createReadStream(path.join(__dirname, 'components', 'footer.html'), 'utf-8');
+  //       ars.on('data', chunk => {
+  //         footer += chunk;
+  //       });
+
+  //       ars.on('end', () => {
+  //         new_data3 = new_arr3.join(footer);
+  //         const writeStream = fs.createWriteStream(path.join(__dirname, '/project-dist/index.html'));
+  //         writeStream.write(new_data3);
+  //       })
+  //     })
 
 
-    })
+  //   })
 
 
-  })
+  // })
 
 
 
